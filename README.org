@@ -179,4 +179,7 @@ If FACTOR is negative, shrink the faces."
 
 <<magnify>>
 
+(provide 'emacs-gfs)
+
+;;; emacs-gfs ends here
 #+END_SRC

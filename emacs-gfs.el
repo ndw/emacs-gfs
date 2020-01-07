@@ -91,3 +91,7 @@ If FACTOR is negative, shrink the faces."
   "Magnify all applicable faces by the magnification factor."
   (interactive)
   (gfs--/magnify-faces gfs/magnify-factor))
+
+(provide 'emacs-gfs)
+
+;;; emacs-gfs ends here

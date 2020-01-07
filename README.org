@@ -115,7 +115,7 @@ the same size and the relative scale is irretrievably lost.
 This code is assembled together with some boilerplate and private
 functions to build the final library.
 
-#+BEGIN_SRC emacs-lisp :noweb yes :tangle gfs.el :exports none
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle emacs-gfs.el :exports none
 
 ;;; gfs.el --- Global face scaling library
 

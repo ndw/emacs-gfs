@@ -1,0 +1,182 @@
+#+TITLE: Global face scaling
+#+AUTHOR: Norman Walsh
+#+DATE: 2020-01-07
+#+STARTUP: showeverything
+
+* Introduction
+
+The standard ~text-scale~ mode provides functions to increase and
+decrease font sizes. But as near as I can tell, it only works on the
+default font. I often have buffers with several faces and find it
+annoying that the standard functions don’t change all the faces.
+
+It’s quite possible that someone else has done a better job of this. I
+found a [[https://emacs.stackexchange.com/questions/29511/text-scale-for-all-faces-in-buffer][stack overflow]] question that seemed relevant, but after
+playing with it for a bit, I couldn’t see how to apply it to an
+arbitrarily large set of faces.
+
+* Resizeable faces
+
+So as an amusement this evening, I decided to write some functions
+that would “brute force” it. First, I work out a list of all the fonts
+that should be scaled: that’s all fonts that have an explicit height
+except the ones explicitly excluded.
+
+#+NAME: resizeable-faces
+#+BEGIN_SRC emacs-lisp
+(defun gfs/resizeable-faces ()
+  "Return the set of faces that can be resized.
+A face can be resized if it is not in the list of ignorable
+faces and has an explicit height."
+  (let ((faces (face-list))
+        (resize '()))
+    (while faces
+      (if (and (not (member (car faces) gfs/resizeable-ignore-faces))
+               (integerp (face-attribute (car faces) :height)))
+          (setq resize (append resize (list (car faces)))))
+      (setq faces (cdr faces)))
+    resize))
+#+END_SRC
+
+I added a list of excluded fonts in an effort to avoid scaling the mode line.
+
+#+NAME: excluded
+#+BEGIN_SRC emacs-lisp
+(defvar gfs/resizeable-ignore-faces
+  '(mode-line-buffer-id
+    mode-line-emphasis
+    mode-line-highlight
+    mode-line-inactive
+    mode-line)
+"Faces named in this list will not be scaled.")
+#+END_SRC
+
+It didn’t work, but I’m not sure why.
+
+* Scaling factor
+
+The ~gfs/magnify-factor~ controls how much scaling is applied.
+
+#+NAME: factor
+#+BEGIN_SRC emacs-lisp
+(defvar gfs/magnify-factor 1.2
+  "The scaling factor.
+Scaling is accomplished by multiplying (or dividing) the face
+:height by this factor.")
+#+END_SRC
+
+* Scaling limits
+
+The ~gfs/face-min-size~ and ~gfs/face-max-size~ control the magnification
+limits. These are aribrary values.  The ~face-remap.el~ library attempts to compute
+practical limits from the font and display size, but I haven’t bothered.
+
+#+NAME: min-size
+#+BEGIN_SRC emacs-lisp
+(defvar gfs/face-min-size 100
+  "The minimum face :height.
+If an attempt is made to scale the face height below this
+threshold, this value will be used.")
+#+END_SRC
+
+#+NAME: max-size
+#+BEGIN_SRC emacs-lisp
+(defvar gfs/face-max-size 1000
+  "The maximum face :height.
+If an attempt is made to scale the face height above this
+threshold, this value will be used.")
+#+END_SRC
+
+There’s a practical consideration in the scaling limits. Scaling by a
+common factor preserves the relative sizes of the faces until the
+limits are reached. Crossing either of the limits, normalizes faces to
+the same size and the relative scale is irretrievably lost.
+
+* Interactive functions
+
+#+NAME: shrink
+#+BEGIN_SRC emacs-lisp
+(defun gfs/shrink-faces ()
+  "Shrink all applicable faces by the magnification factor."
+  (interactive)
+  (gfs--/magnify-faces (- gfs/magnify-factor)))
+#+END_SRC
+
+#+NAME: magnify
+#+BEGIN_SRC emacs-lisp
+(defun gfs/magnify-faces ()
+  "Magnify all applicable faces by the magnification factor."
+  (interactive)
+  (gfs--/magnify-faces gfs/magnify-factor))
+#+END_SRC
+
+* Assembled library
+
+This code is assembled together with some boilerplate and private
+functions to build the final library.
+
+#+BEGIN_SRC emacs-lisp :noweb yes :tangle gfs.el :exports none
+
+;;; gfs.el --- Global face scaling library
+
+;; Copyright © 2020 Norman Walsh
+
+;; Author: Norman Walsh <ndw@nwalsh.com>
+;; Version: 1.0.0
+;; Keywords: faces
+
+;; This file is not part of GNU Emacs.
+
+;; This program is Free Software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+;; for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;
+;; This file provides functions to scale faces. Unlike the functions
+;; provided by the text-scale mode in face-remap.el, these functions
+;; apply to all of the faces, not just the default face.
+
+;;; Code:
+
+<<factor>>
+
+<<min-size>>
+
+<<max-size>>
+
+<<excluded>>
+
+<<resizeable-faces>>
+
+(defun gfs--/magnify-faces (factor)
+  "Magnify all applicable faces by FACTOR.
+If FACTOR is negative, shrink the faces."
+  (let ((faces (gfs/resizeable-faces))
+        height)
+    (while faces
+      (message (symbol-name (car faces)))
+      (setq cursize (face-attribute (car faces) :height))
+      (setq height 
+            (if (> factor 0)
+                (floor (* cursize gfs/magnify-factor))
+              (floor (/ cursize (abs gfs/magnify-factor)))))
+      (if (and (>= height gfs/face-min-size)
+               (<= height gfs/face-max-size))
+          (set-face-attribute (car faces) nil :height height))
+      (setq faces (cdr faces)))))
+
+<<shrink>>
+
+<<magnify>>
+
+#+END_SRC

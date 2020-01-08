@@ -15,6 +15,9 @@ found a [[https://emacs.stackexchange.com/questions/29511/text-scale-for-all-fac
 playing with it for a bit, I couldn’t see how to apply it to an
 arbitrarily large set of faces.
 
+This README file is a literate programming version of ~emacs-gfs.el~.
+Do not edit the emacs lisp file directly.
+
 * Resizeable faces
 
 So as an amusement this evening, I decided to write some functions
@@ -135,6 +138,10 @@ functions to build the final library.
 #+BEGIN_SRC emacs-lisp :noweb yes :tangle emacs-gfs.el :exports none
 
 ;;; gfs.el --- Global face scaling library
+
+;; N.B. emacs-gfs.el is automatically generated from README.org. It is
+;; the “tangled” output of a literate program written in Org-mode with
+;; babel and noweb. Do not edit it directly, your edits will be lost.
 
 ;; Copyright © 2020 Norman Walsh
 

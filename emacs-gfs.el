@@ -1,5 +1,9 @@
 ;;; gfs.el --- Global face scaling library
 
+;; N.B. emacs-gfs.el is automatically generated from README.org. It is
+;; the “tangled” output of a literate program written in Org-mode with
+;; babel and noweb. Do not edit it directly, your edits will be lost.
+
 ;; Copyright © 2020 Norman Walsh
 
 ;; Author: Norman Walsh <ndw@nwalsh.com>

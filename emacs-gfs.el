@@ -65,11 +65,29 @@ faces and has an explicit height."
       (setq faces (cdr faces)))
     resize))
 
+(defvar gfs/default-face-height 180
+"Default height for faces with no explicit height.")
+
+(defun gfs--/face-height (face)
+  (if (integerp (face-attribute face :height))
+      (face-attribute face :height)
+    (if (facep (face-attribute face :inherit))
+        (gfs--/face-height (face-attribute face :inherit))
+      gfs/default-face-height)))
+
+(defun gfs--/fix-ignoreable-face-heights ()
+  (let ((faces gfs/resizeable-ignore-faces))
+    (while faces
+      (set-face-attribute (car faces) nil :height
+                          (gfs--/face-height (car faces)))
+      (setq faces (cdr faces)))))
+
 (defun gfs--/magnify-faces (factor)
   "Magnify all applicable faces by FACTOR.
 If FACTOR is negative, shrink the faces."
   (let ((faces (gfs/resizeable-faces))
         height)
+    (gfs--/fix-ignoreable-face-heights)
     (while faces
       (message (symbol-name (car faces)))
       (setq cursize (face-attribute (car faces) :height))

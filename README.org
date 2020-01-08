@@ -38,7 +38,11 @@ faces and has an explicit height."
     resize))
 #+END_SRC
 
-I added a list of excluded fonts in an effort to avoid scaling the mode line.
+** Ignored faces
+
+I added a list of excluded fonts in an effort to avoid scaling the
+mode line and the minibuffer. It’s only been a partial success because
+I haven’t yet worked out what face is used for the minibuffer.
 
 #+NAME: excluded
 #+BEGIN_SRC emacs-lisp
@@ -51,7 +55,20 @@ I added a list of excluded fonts in an effort to avoid scaling the mode line.
 "Faces named in this list will not be scaled.")
 #+END_SRC
 
-It didn’t work, but I’m not sure why.
+Because faces inherit, if we want to avoid scaling some faces, we have to make
+sure that they have a fixed size. Generally, this means following the inheritance
+chain until we find a face with a specified size.
+
+If we bottom out and don’t find any size, we have to have a default, so here it is:
+
+#+NAME: default-height
+#+BEGIN_SRC emacs-lisp
+(defvar gfs/default-face-height 180
+"Default height for faces with no explicit height.")
+#+END_SRC
+
+I have no idea how generally useful “180” is. It works for me, but
+[[https://en.wiktionary.org/wiki/your_mileage_may_vary][YMMV]].
 
 * Scaling factor
 
@@ -158,11 +175,28 @@ functions to build the final library.
 
 <<resizeable-faces>>
 
+<<default-height>>
+
+(defun gfs--/face-height (face)
+  (if (integerp (face-attribute face :height))
+      (face-attribute face :height)
+    (if (facep (face-attribute face :inherit))
+        (gfs--/face-height (face-attribute face :inherit))
+      gfs/default-face-height)))
+
+(defun gfs--/fix-ignoreable-face-heights ()
+  (let ((faces gfs/resizeable-ignore-faces))
+    (while faces
+      (set-face-attribute (car faces) nil :height
+                          (gfs--/face-height (car faces)))
+      (setq faces (cdr faces)))))
+
 (defun gfs--/magnify-faces (factor)
   "Magnify all applicable faces by FACTOR.
 If FACTOR is negative, shrink the faces."
   (let ((faces (gfs/resizeable-faces))
         height)
+    (gfs--/fix-ignoreable-face-heights)
     (while faces
       (message (symbol-name (car faces)))
       (setq cursize (face-attribute (car faces) :height))

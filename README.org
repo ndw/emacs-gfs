@@ -84,21 +84,21 @@ Scaling is accomplished by multiplying (or dividing) the face
 
 * Scaling limits
 
-The ~gfs/face-min-size~ and ~gfs/face-max-size~ control the magnification
+The ~gfs/face-min-height~ and ~gfs/face-max-height~ control the magnification
 limits. These are aribrary values.  The ~face-remap.el~ library attempts to compute
 practical limits from the font and display size, but I haven’t bothered.
 
-#+NAME: min-size
+#+NAME: min-height
 #+BEGIN_SRC emacs-lisp
-(defvar gfs/face-min-size 100
+(defvar gfs/face-min-height 100
   "The minimum face :height.
 If an attempt is made to scale the face height below this
 threshold, this value will be used.")
 #+END_SRC
 
-#+NAME: max-size
+#+NAME: max-height
 #+BEGIN_SRC emacs-lisp
-(defvar gfs/face-max-size 1000
+(defvar gfs/face-max-height 1000
   "The maximum face :height.
 If an attempt is made to scale the face height above this
 threshold, this value will be used.")
@@ -167,9 +167,9 @@ functions to build the final library.
 
 <<factor>>
 
-<<min-size>>
+<<min-height>>
 
-<<max-size>>
+<<max-height>>
 
 <<excluded>>
 
@@ -204,8 +204,8 @@ If FACTOR is negative, shrink the faces."
             (if (> factor 0)
                 (floor (* cursize gfs/magnify-factor))
               (floor (/ cursize (abs gfs/magnify-factor)))))
-      (if (and (>= height gfs/face-min-size)
-               (<= height gfs/face-max-size))
+      (if (and (>= height gfs/face-min-height)
+               (<= height gfs/face-max-height))
           (set-face-attribute (car faces) nil :height height))
       (setq faces (cdr faces)))))
 

@@ -34,12 +34,12 @@
 Scaling is accomplished by multiplying (or dividing) the face
 :height by this factor.")
 
-(defvar gfs/face-min-size 100
+(defvar gfs/face-min-height 100
   "The minimum face :height.
 If an attempt is made to scale the face height below this
 threshold, this value will be used.")
 
-(defvar gfs/face-max-size 1000
+(defvar gfs/face-max-height 1000
   "The maximum face :height.
 If an attempt is made to scale the face height above this
 threshold, this value will be used.")
@@ -95,8 +95,8 @@ If FACTOR is negative, shrink the faces."
             (if (> factor 0)
                 (floor (* cursize gfs/magnify-factor))
               (floor (/ cursize (abs gfs/magnify-factor)))))
-      (if (and (>= height gfs/face-min-size)
-               (<= height gfs/face-max-size))
+      (if (and (>= height gfs/face-min-height)
+               (<= height gfs/face-max-height))
           (set-face-attribute (car faces) nil :height height))
       (setq faces (cdr faces)))))
 
